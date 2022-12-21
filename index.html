@@ -1,19 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <title>Document 1</title>
-        <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
-        <style type="text/css">
-            body {
-                margin: 0;
-            }
-            body > canvas {
-                margin: 0 auto 0 auto;
-            }
-        </style>
-    </head>
-    <body>
-        <script type="module" src="./src/index.js"></script>
-    </body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>virus invasion</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+      body {
+        margin: 0;
+      }
+      body > canvas {
+        margin: 0 auto 0 auto;
+      }
+    </style>
+    <link
+      id="favicon"
+      rel="icon"
+      type="image/x-icon"
+      href="./assets/favicon/favicon_0.png"
+    />
+    <script>
+      let faviconElem = document.getElementById("favicon");
+      faviconElem.setAttribute(
+        "href",
+        `./assets/favicon/favicon_${Phaser.Math.Between(0, 3)}.png`
+      );
+    </script>
+  </head>
+  <body>
+    <script type="module" src="./src/index.js"></script>
+  </body>
 </html>

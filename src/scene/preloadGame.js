@@ -3,7 +3,7 @@ class preloadGame extends Phaser.Scene {
     super("PreloadGame");
   }
   preload() {
-    this.load.image("background", "../../assets/sky.png");
+    this.load.image("background", "../../assets/bg.png");
     this.load.image("ground", "../../assets/platform.png");
     this.load.image("bullet", "../../assets/bomb.png");
     this.load.image("maskPowerUp", "../../assets/maskPowerup.png");
@@ -21,6 +21,11 @@ class preloadGame extends Phaser.Scene {
     this.load.audio("shootSound", "../../assets/audio/laser1.ogg");
     this.load.audio("virusDeathSound", "../../assets/audio/lowRandom.ogg");
     this.load.audio("damageTaken", "../../assets/audio/highDown.ogg");
+    this.load.audio("deathSound", "../../assets/audio/deathSound.mp3");
+    this.load.audio("shieldDestroy", "../../assets/audio/destroy.mp3");
+    this.load.audio("healing", "../../assets/audio/healing.mp3");
+    this.load.audio("reload", "../../assets/audio/reload.mp3");
+    this.load.audio("shield", "../../assets/audio/shield.mp3");
 
     var progressBar = this.add.graphics();
     var progressBox = this.add.graphics();

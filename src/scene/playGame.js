@@ -1,5 +1,6 @@
 let i = 0;
 let passingData = {};
+var keys = {};
 
 class playGame extends Phaser.Scene {
   constructor() {
@@ -22,12 +23,15 @@ class playGame extends Phaser.Scene {
     this.maxhealth = 3;
     this.score = 1;
     this.highScore = data.highScore;
+    this.isGoingDown = false;
+    this.isGoingUp = false;
+    this.isShooting = false;
 
     this.maskCooldown = 0;
     this.maskMaxCooldown = 2000;
     this.virusSpawnRate = 10;
     this.powerUpSpawnRate = 0.05;
-    //console.log(data);
+    console.log(data);
   }
   preload() {}
   create() {
@@ -37,7 +41,7 @@ class playGame extends Phaser.Scene {
     this.bg = this.add
       .image(this.width / 2, this.height / 2, "background")
       .setDepth(-10);
-    this.bg.setScale(3, 2.4);
+    this.bg.setScale(1).setAlpha(0.5);
     this.background1 = this.add
       .tileSprite(
         this.width / 2,
@@ -46,33 +50,72 @@ class playGame extends Phaser.Scene {
         this.height,
         "background1"
       )
-      .setDepth(-5);
+      .setDepth(-5)
+      .setAlpha(0.5);
+
+    this.add.tween({
+      targets: this.bg,
+      ease: "Sine.easeInOut",
+      duration: 2000,
+      delay: 0,
+      x: this.bg.x,
+      y: this.bg.y,
+      alpha: 1,
+    });
+    this.add.tween({
+      targets: this.background1,
+      ease: "Sine.easeInOut",
+      duration: 2000,
+      delay: 0,
+      x: this.background1.x,
+      y: this.background1.y,
+      alpha: 1,
+    });
 
     this.shootSound = this.sound.add("shootSound", { loop: false });
     this.virusDeathSound = this.sound.add("virusDeathSound", { loop: false });
     this.damageTakenSound = this.sound.add("damageTaken", { loop: false });
+    this.shieldDestroySound = this.sound.add("shieldDestroy", { loop: false });
+    this.healingSound = this.sound.add("healing", { loop: false });
+    this.reloadSound = this.sound.add("reload", { loop: false });
+    this.shieldSound = this.sound.add("shield", { loop: false });
 
     //platform is created here
     this.platforms = this.physics.add.group({});
     this.sensor = this.physics.add.staticGroup();
     this.platform1 = this.platforms
       .create(this.width / 2, 0, "ground")
-      .setScale(10, 4.25);
+      .setScale(10, 4.25)
+      .setAlpha(0);
 
-    this.platform2 = this.add.tileSprite(
-      this.width / 2,
-      this.height - 16,
-      this.width,
-      32,
-      "ground1"
-    );
+    this.platform2 = this.add
+      .tileSprite(this.width / 2, this.height - 16, this.width, 32, "ground1")
+      .setAlpha(0.5);
     this.platform3 = this.platforms
-      .create(this.width / 2, this.height - 16, "ground")
-      .setScale(10, 3)
-      .setDepth(-10);
+      .create(this.width / 2, this.height - 16, "")
+      .setSize(this.width, 100)
+      .setDepth(-10)
+      .setAlpha(0);
 
     this.platform2.setScale(4.25);
-
+    this.add.tween({
+      targets: this.platform1,
+      ease: "Sine.easeInOut",
+      duration: 1000,
+      delay: 0,
+      x: this.platform1.x,
+      y: this.platform1.y,
+      alpha: 1,
+    });
+    this.add.tween({
+      targets: this.platform2,
+      ease: "Sine.easeInOut",
+      duration: 2000,
+      delay: 0,
+      x: this.platform2.x,
+      y: this.platform2.y,
+      alpha: 1,
+    });
     this.platforms.add(this.platform3);
     let sensorLeft = this.sensor
       .create(-100, this.height / 2, "")
@@ -87,8 +130,8 @@ class playGame extends Phaser.Scene {
 
     //texts
     this.bulletCountText = this.make.text({
-      x: 50,
-      y: this.height - 50,
+      x: 800,
+      y: 25,
       text: "Bullet Count: " + this.bulletNumber,
       style: {
         font: "20px monospace",
@@ -106,7 +149,7 @@ class playGame extends Phaser.Scene {
     });
     this.HealthCountText = this.make.text({
       x: 500,
-      y: this.height - 50,
+      y: 25,
       text: "Health Count: " + this.health,
       style: {
         font: "20px monospace",
@@ -230,12 +273,15 @@ class playGame extends Phaser.Scene {
       (player, powerUp) => {
         let pUp = powerUp.texture.key;
         if (pUp === "magazinePowerUp") {
+          this.reloadSound.play();
           this.bulletNumber = this.magazineSize;
           this.bulletCountText.setText("Bullet " + this.bulletNumber);
         } else if (pUp === "healthPowerUp") {
+          this.healingSound.play();
           this.health = this.maxhealth;
           this.HealthCountText.setText("Health: " + this.health);
         } else if (pUp === "maskPowerUp") {
+          this.shieldSound.play();
           this.wearmask();
           console.log(pUp);
         }
@@ -250,6 +296,7 @@ class playGame extends Phaser.Scene {
       this.maskGroup,
       this.virusGroup,
       (mask, virus) => {
+        this.shieldDestroySound.play();
         this.virusGroup.remove(virus);
         virus.destroy();
         this.maskGroup.remove(mask);
@@ -337,7 +384,7 @@ class playGame extends Phaser.Scene {
   }
 
   controls() {
-    var keys = this.input.keyboard.addKeys({
+    keys = this.input.keyboard.addKeys({
       up: "up",
       down: "down",
       left: "left",
@@ -346,8 +393,25 @@ class playGame extends Phaser.Scene {
       w: "w",
       s: "s",
     });
-
-    if (keys.up.isDown || keys.w.isDown) {
+    if (keys.up._justDown || keys.w._justDown) {
+      this.isGoingUp = true;
+    }
+    if (keys.up._justUp || keys.w._justUp) {
+      this.isGoingUp = false;
+    }
+    if (keys.down._justDown || keys.s._justDown) {
+      this.isGoingDown = true;
+    }
+    if (keys.down._justUp || keys.s._justUp) {
+      this.isGoingDown = false;
+    }
+    if (keys.space._justDown) {
+      this.isShooting = true;
+    }
+    if (keys.space._justUp) {
+      this.isShooting = false;
+    }
+    if (this.isGoingUp) {
       this.velocity -= 20;
       if (this.angle > -15) {
         this.angle -= 1;
@@ -355,7 +419,7 @@ class playGame extends Phaser.Scene {
       }
       this.user.setVelocityY(this.velocity);
     }
-    if (keys.down.isDown || keys.s.isDown) {
+    if (this.isGoingDown) {
       this.velocity += 20;
       if (this.angle < 15) {
         this.angle += 1;
@@ -363,16 +427,11 @@ class playGame extends Phaser.Scene {
       }
       this.user.setVelocityY(this.velocity);
     }
-    if (keys.space.isDown) {
+    if (this.isShooting) {
       this.shootBullet();
     }
 
-    if (
-      !keys.up.isDown &&
-      !keys.down.isDown &&
-      !keys.w.isDown &&
-      !keys.s.isDown
-    ) {
+    if (!this.isGoingDown && !this.isGoingUp) {
       // angle = 0;
       // user.angle = angle;
       if (this.angle > 2) {
@@ -405,6 +464,9 @@ class playGame extends Phaser.Scene {
     if (this.score > this.highScore) passingData.highScore = this.score;
 
     setTimeout(() => {
+      for (const key of [...Object.values(keys)]) {
+        this.input.keyboard.removeKey(key, false);
+      }
       this.scene.stop();
       this.scene.start("GameOver", passingData);
       /*
