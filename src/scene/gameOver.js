@@ -1,5 +1,4 @@
-
-
+var keys = {};
 class GameOver extends Phaser.Scene {
   constructor() {
     super("GameOver");
@@ -9,9 +8,10 @@ class GameOver extends Phaser.Scene {
     this.data = data;
     this.width = this.sys.canvas.width;
     this.height = this.sys.canvas.height;
+    keys = this.input.keyboard.addKeys({
+      enter: "enter",
+    });
   }
-
-  preload() {}
 
   create() {
     this.physics.add.image(this.width / 2, 200, "gameOver");
@@ -46,6 +46,7 @@ class GameOver extends Phaser.Scene {
         style: {
           font: "20px monospace",
           fill: "#ffffff",
+          backgroundColor: "#000",
         },
       })
       .setOrigin(0.5)
@@ -59,7 +60,7 @@ class GameOver extends Phaser.Scene {
         startButton.setStyle({ fill: "#f39c12" });
       })
       .on("pointerout", () => {
-        startButton.setStyle({ fill: "#FFF" });
+        startButton.setStyle({ fill: "#ffffff" });
       });
     let mainMenuButton = this.make
       .text({
@@ -84,6 +85,21 @@ class GameOver extends Phaser.Scene {
       .on("pointerout", () => {
         mainMenuButton.setStyle({ fill: "#FFF" });
       });
+
+    this.input.keyboard.on("keydown-SPACE", () => {
+      console.log("pressed a");
+      this.scene.start("PlayGame", this.data);
+    });
+  }
+
+  update() {
+    keys = this.input.keyboard.addKeys({
+      space: "space",
+      enter: "enter",
+    });
+    if (keys.enter.isDown) {
+      this.scene.start("PlayGame", this.data);
+    }
   }
 }
 

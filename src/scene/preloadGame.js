@@ -1,5 +1,3 @@
-
-
 class preloadGame extends Phaser.Scene {
   constructor() {
     super("PreloadGame");
@@ -17,6 +15,8 @@ class preloadGame extends Phaser.Scene {
     this.load.image("maskShield", "../../assets/maskShield.png");
     this.load.image("gameOver", "../../assets/gameOver.png");
     this.load.image("plane", "../../assets/plane.png");
+    this.load.image("background1", "../../assets/BG 01.png");
+    this.load.image("ground1", "../../assets/Ground.png");
 
     this.load.audio("shootSound", "../../assets/audio/laser1.ogg");
     this.load.audio("virusDeathSound", "../../assets/audio/lowRandom.ogg");

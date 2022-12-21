@@ -26,7 +26,7 @@ class playGame extends Phaser.Scene {
     this.maskCooldown = 0;
     this.maskMaxCooldown = 2000;
     this.virusSpawnRate = 10;
-    this.powerUpSpawnRate = 5;
+    this.powerUpSpawnRate = 0.05;
     //console.log(data);
   }
   preload() {}
@@ -38,22 +38,42 @@ class playGame extends Phaser.Scene {
       .image(this.width / 2, this.height / 2, "background")
       .setDepth(-10);
     this.bg.setScale(3, 2.4);
+    this.background1 = this.add
+      .tileSprite(
+        this.width / 2,
+        this.height / 2 - 50,
+        this.width,
+        this.height,
+        "background1"
+      )
+      .setDepth(-5);
 
     this.shootSound = this.sound.add("shootSound", { loop: false });
     this.virusDeathSound = this.sound.add("virusDeathSound", { loop: false });
     this.damageTakenSound = this.sound.add("damageTaken", { loop: false });
 
     //platform is created here
-    this.platforms = this.physics.add.staticGroup();
+    this.platforms = this.physics.add.group({});
     this.sensor = this.physics.add.staticGroup();
     this.platform1 = this.platforms
       .create(this.width / 2, 0, "ground")
-      .setScale(10, 4.25)
-      .refreshBody();
-    this.platform2 = this.platforms
-      .create(this.width / 2, this.height, "ground")
-      .setScale(10, 4.25)
-      .refreshBody();
+      .setScale(10, 4.25);
+
+    this.platform2 = this.add.tileSprite(
+      this.width / 2,
+      this.height - 16,
+      this.width,
+      32,
+      "ground1"
+    );
+    this.platform3 = this.platforms
+      .create(this.width / 2, this.height - 16, "ground")
+      .setScale(10, 3)
+      .setDepth(-10);
+
+    this.platform2.setScale(4.25);
+
+    this.platforms.add(this.platform3);
     let sensorLeft = this.sensor
       .create(-100, this.height / 2, "")
       .setVisible(false)
@@ -102,7 +122,6 @@ class playGame extends Phaser.Scene {
     this.user.setSize(153, 51, true);
 
     //events listening here
-    this.cursors = this.input.keyboard.createCursorKeys();
 
     //objects spawners
 
@@ -114,6 +133,15 @@ class playGame extends Phaser.Scene {
       null,
       this
     );
+    // this.physics.add.overlap(
+    //   this.user,
+    //   this.platforms,
+    //   (user, platforn) => {
+    //     this.died();
+    //   },
+    //   null,
+    //   this
+    // );
 
     //virus groups
     this.virusGroup = this.add.group({});
@@ -138,6 +166,26 @@ class playGame extends Phaser.Scene {
       (sensor, bullet) => {
         this.bulletGroup.remove(bullet);
         bullet.destroy();
+      },
+      null,
+      this
+    );
+    this.physics.add.overlap(
+      this.powerUpGroup,
+      this.virusGroup,
+      (sensor, virus) => {
+        this.virusGroup.remove(virus);
+        virus.destroy();
+      },
+      null,
+      this
+    );
+    this.physics.add.overlap(
+      this.powerUpGroup,
+      this.powerUpGroup,
+      (sensor, powerup) => {
+        this.powerUpGroup.remove(powerup);
+        powerup.destroy();
       },
       null,
       this
@@ -238,7 +286,7 @@ class playGame extends Phaser.Scene {
     );
   }
   addVirus(type) {
-    let posX = this.width + 50;
+    let posX = this.width + Phaser.Math.Between(50, 1000);
     let posY = Phaser.Math.Between(125, this.height - 125);
     let virus = this.physics.add.image(posX, posY, type);
     //this.physics.add.existing(virus);
@@ -289,7 +337,17 @@ class playGame extends Phaser.Scene {
   }
 
   controls() {
-    if (this.cursors.up.isDown) {
+    var keys = this.input.keyboard.addKeys({
+      up: "up",
+      down: "down",
+      left: "left",
+      right: "right",
+      space: "space",
+      w: "w",
+      s: "s",
+    });
+
+    if (keys.up.isDown || keys.w.isDown) {
       this.velocity -= 20;
       if (this.angle > -15) {
         this.angle -= 1;
@@ -297,7 +355,7 @@ class playGame extends Phaser.Scene {
       }
       this.user.setVelocityY(this.velocity);
     }
-    if (this.cursors.down.isDown) {
+    if (keys.down.isDown || keys.s.isDown) {
       this.velocity += 20;
       if (this.angle < 15) {
         this.angle += 1;
@@ -305,11 +363,16 @@ class playGame extends Phaser.Scene {
       }
       this.user.setVelocityY(this.velocity);
     }
-    if (this.cursors.space.isDown) {
+    if (keys.space.isDown) {
       this.shootBullet();
     }
 
-    if (!this.cursors.up.isDown && !this.cursors.down.isDown) {
+    if (
+      !keys.up.isDown &&
+      !keys.down.isDown &&
+      !keys.w.isDown &&
+      !keys.s.isDown
+    ) {
       // angle = 0;
       // user.angle = angle;
       if (this.angle > 2) {
@@ -342,7 +405,7 @@ class playGame extends Phaser.Scene {
     if (this.score > this.highScore) passingData.highScore = this.score;
 
     setTimeout(() => {
-      this.scene.pause;
+      this.scene.stop();
       this.scene.start("GameOver", passingData);
       /*
       if (confirm("You Died,try again?")) {
@@ -357,6 +420,9 @@ class playGame extends Phaser.Scene {
   update() {
     // Movement events
     this.controls();
+    //console.log(this.background1);
+    this.background1.tilePositionX += 1;
+    this.platform2.tilePositionX += 1;
     this.gameSpeed += 0.0001;
     if (Phaser.Math.Between(1, 100) <= this.virusSpawnRate) {
       let i = Phaser.Math.Between(0, 2);
