@@ -35,7 +35,7 @@ class MainMenu extends Phaser.Scene {
       .text({
         x: this.width / 2,
         y: 200,
-        text: "Airship Virus: The Infection",
+        text: "VIRUS INVASION",
         style: {
           font: "80px monospace",
           fill: "#ffffff",

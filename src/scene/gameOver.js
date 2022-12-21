@@ -62,7 +62,6 @@ class GameOver extends Phaser.Scene {
       y: this.platform2.y,
       alpha: 0.5,
     });
-    console.log(data);
     this.data = data;
     this.gameOverImg = this.physics.add
       .image(this.width / 2, 200, "gameOver")

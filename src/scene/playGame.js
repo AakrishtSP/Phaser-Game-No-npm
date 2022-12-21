@@ -338,6 +338,7 @@ class playGame extends Phaser.Scene {
     let virus = this.physics.add.image(posX, posY, type);
     //this.physics.add.existing(virus);
     virus.body.setVelocityX(-200 * this.gameSpeed);
+    virus.body.isCircle = true;
     this.virusGroup.add(virus);
   }
   updateScore() {
@@ -361,6 +362,7 @@ class playGame extends Phaser.Scene {
       this.shootSound.play();
       bullet.setScale(1.5);
       bullet.body.setVelocityX(400);
+      bullet.body.isCircle = true;
       this.bulletGroup.add(bullet);
 
       this.bulletNumber--;
